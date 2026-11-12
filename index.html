@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazeStream - Regardez vos animes préférés</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ===== NAVBAR ===== -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="#" class="logo" onclick="goHome(); return false;">
+                    <span class="logo-otaku">KAZE</span><span class="logo-flix">STREAM</span>
+                </a>
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#" class="nav-link active" onclick="goHome(); return false;">Accueil</a></li>
+                </ul>
+            </div>
+            <div class="nav-right">
+                <div class="search-box">
+                    <button class="search-btn" id="searchBtn" aria-label="Rechercher">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="M21 21l-4.35-4.35"></path>
+                        </svg>
+                    </button>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un anime...">
+                </div>
+                <div class="more-menu" id="moreMenu">
+                    <button class="nav-icon-btn" id="moreBtn" aria-label="Plus d'options">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+                    </button>
+                    <div class="more-dropdown" id="moreDropdown">
+                        <a href="#" onclick="closeMoreMenu(); openAboutModal(); return false;">A propos</a>
+                        <a href="#" onclick="closeMoreMenu(); openCGUModal(); return false;">Conditions d'utilisation</a>
+                        <a href="#" onclick="closeMoreMenu(); openPrivacyModal(); return false;">Confidentialite</a>
+                        <a href="#" onclick="closeMoreMenu(); openHelpModal(); return false;">Centre d'aide</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" onclick="closeMoreMenu(); openReportModal(); return false;">Signaler un probleme</a>
+                    </div>
+                </div>
+                <button class="nav-icon-btn" id="bookmarkBtn" aria-label="Ma Liste" onclick="openMyListModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </button>
+                <div class="profile-menu" id="profileMenu">
+                    <button class="profile-btn" id="profileBtn">
+                        <div class="profile-avatar" id="navAvatar">O</div>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"></path>
+                        </svg>
+                    </button>
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <!-- Si connecté -->
+                        <div id="dropdownLoggedIn" style="display:none;">
+                            <a href="#" onclick="openProfileModal(); return false;">Mon Profil</a>
+                            <a href="#" onclick="openSettingsModal(); return false;">Paramètres</a>
+                            <a href="#" onclick="openMyListModal(); return false;">Ma Liste</a>
+                            <a href="#" onclick="openSubscriptionModal(); return false;" class="dropdown-sub-link">Mon Abonnement</a>
+                            <a href="#" onclick="toggleTheme(); return false;" id="themeToggleNav">Mode Jour / Nuit</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" onclick="logoutUser(); return false;" class="logout-link">Déconnexion</a>
+                        </div>
+                        <!-- Si déconnecté -->
+                        <div id="dropdownLoggedOut">
+                            <a href="#" onclick="openAuthModal('login'); return false;">Connexion</a>
+                            <a href="#" onclick="openAuthModal('register'); return false;">Créer un compte</a>
+                            <a href="#" onclick="toggleTheme(); return false;">Mode Jour / Nuit</a>
+                        </div>
+                    </div>
+                </div>
+                <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== MOBILE MENU ===== -->
+    <div class="mobile-menu" id="mobileMenu">
+        <ul class="mobile-nav-links">
+            <li><a href="#" class="mobile-link active" onclick="goHome(); return false;">Accueil</a></li>
+        </ul>
+    </div>
+
+    <!-- ===== AUTH MODAL (Connexion / Inscription) ===== -->
+    <div class="modal-overlay" id="authModalOverlay">
+        <div class="auth-modal">
+            <button class="modal-close" onclick="closeAuthModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+
+            <!-- Onglets -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Connexion</button>
+                <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')">Inscription</button>
+            </div>
+
+            <!-- Formulaire Connexion -->
+            <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+                <div class="auth-logo">
+                    <span class="logo-otaku">KAZE</span><span class="logo-flix">STREAM</span>
+                </div>
+                <h2 class="auth-title">Bon retour !</h2>
+                <p class="auth-subtitle">Connectez-vous pour accéder à vos animes</p>
+                <div class="form-group">
+                    <label for="loginEmail">Adresse e-mail</label>
+                    <input type="email" id="loginEmail" placeholder="votre@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Mot de passe</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="loginPassword" placeholder="Votre mot de passe" required>
+                        <button type="button" class="toggle-pwd" onclick="togglePassword('loginPassword', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="rememberMe"> Se souvenir de moi
+                    </label>
+                    <a href="#" class="forgot-link" onclick="showToast('📧', 'Mot de passe oublié', 'Un e-mail de réinitialisation vous a été envoyé.'); return false;">Mot de passe oublié ?</a>
+                </div>
+                <button type="submit" class="btn btn-play btn-full">Se connecter</button>
+                <div class="auth-divider"><span>ou</span></div>
+                <button type="button" class="btn btn-whatsapp btn-full" onclick="whatsappLogin()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    Continuer avec WhatsApp
+                </button>
+            </form>
+
+            <!-- Formulaire Inscription -->
+            <form class="auth-form" id="registerForm" style="display:none;" onsubmit="handleRegister(event)">
+                <div class="auth-logo">
+                    <span class="logo-otaku">KAZE</span><span class="logo-flix">STREAM</span>
+                </div>
+                <h2 class="auth-title">Rejoins l'aventure !</h2>
+                <p class="auth-subtitle">Crée ton compte KazeStream gratuitement</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="regFirstName">Prénom</label>
+                        <input type="text" id="regFirstName" placeholder="Ton prénom" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regLastName">Nom</label>
+                        <input type="text" id="regLastName" placeholder="Ton nom" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">Adresse e-mail</label>
+                    <input type="email" id="regEmail" placeholder="votre@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPhone">Numéro de téléphone</label>
+                    <input type="tel" id="regPhone" placeholder="+237 6XX XXX XXX" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Mot de passe</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="regPassword" placeholder="Min. 8 caractères" required minlength="8">
+                        <button type="button" class="toggle-pwd" onclick="togglePassword('regPassword', this)">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="regPasswordConfirm">Confirmer le mot de passe</label>
+                    <input type="password" id="regPasswordConfirm" placeholder="Confirme ton mot de passe" required minlength="8">
+                </div>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="agreeTerms" required> J'accepte les <a href="#" onclick="closeAuthModal(); setTimeout(()=>openCGUModal(), 300); return false;">conditions d'utilisation</a>
+                </label>
+                <button type="submit" class="btn btn-play btn-full">Créer mon compte</button>
+                <p class="auth-note">Le compte gratuit donne accès à certains animes. Pour un accès illimité, <a href="#" onclick="closeAuthModal(); setTimeout(()=>openSubscriptionModal(), 300); return false;">abonnez-vous à 5 000 FCFA/mois</a>.</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== PROFILE MODAL ===== -->
+    <div class="modal-overlay" id="profileModalOverlay">
+        <div class="profile-modal">
+            <button class="modal-close" onclick="closeProfileModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <div class="profile-header-section">
+                <div class="profile-avatar-large" id="profileAvatarLarge">O</div>
+                <div class="profile-info-section">
+                    <h2 id="profileDisplayName">Kaze</h2>
+                    <p id="profileDisplayEmail" class="profile-email">kaze@kazestream.com</p>
+                    <div class="profile-badges">
+                        <span class="profile-badge" id="profileBadge">Gratuit</span>
+                        <span class="profile-badge badge-verified" id="profileBadgeVerified" style="display:none;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                            Premium
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-stats">
+                <div class="stat-card">
+                    <span class="stat-number" id="statWatched">0</span>
+                    <span class="stat-label">Animes regardés</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="statHours">0</span>
+                    <span class="stat-label">Heures de visionnage</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="statList">0</span>
+                    <span class="stat-label">Dans ma liste</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number" id="statEpisodes">0</span>
+                    <span class="stat-label">Épisodes vus</span>
+                </div>
+            </div>
+            <div class="profile-subscription-info" id="profileSubInfo">
+                <h3>Mon Abonnement</h3>
+                <div class="sub-info-card" id="subInfoCard">
+                    <div class="sub-info-row">
+                        <span>Statut</span>
+                        <strong id="subStatusText">Gratuit</strong>
+                    </div>
+                    <div class="sub-info-row">
+                        <span>Renouvellement</span>
+                        <strong id="subRenewalText">-</strong>
+                    </div>
+                    <div class="sub-info-row">
+                        <span>Méthode de paiement</span>
+                        <strong id="subPaymentText">-</strong>
+                    </div>
+                </div>
+                <button class="btn btn-play btn-full" id="upgradeBtn" onclick="closeProfileModal(); setTimeout(()=>openSubscriptionModal(), 300);">
+                    Passer Premium - 5 000 FCFA/mois
+                </button>
+            </div>
+            <div class="profile-actions-grid">
+                <button class="profile-action-btn" onclick="openSettingsModal()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    Paramètres
+                </button>
+                <button class="profile-action-btn" onclick="closeProfileModal(); openMyListModal();">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    Ma Liste
+                </button>
+                <button class="profile-action-btn" onclick="closeProfileModal(); openSubscriptionModal();">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    Abonnement
+                </button>
+                <button class="profile-action-btn danger" onclick="closeProfileModal(); logoutUser();">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Déconnexion
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS MODAL ===== -->
+    <div class="modal-overlay" id="settingsModalOverlay">
+        <div class="settings-modal">
+            <button class="modal-close" onclick="closeSettingsModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="settings-title">Paramètres</h2>
+            <div class="settings-group">
+                <h3>Apparence</h3>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Thème</span>
+                        <small>Basculer entre mode clair et sombre</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="themeSwitch" onchange="toggleTheme()">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Langue</span>
+                        <small>Choisir la langue de l'interface</small>
+                    </div>
+                    <select id="langSelect" class="setting-select" onchange="showToast('🌐', 'Langue', 'Langue changée en ' + this.value);">
+                        <option value="Français" selected>Français</option>
+                        <option value="English">English</option>
+                        <option value="日本語">日本語</option>
+                    </select>
+                </div>
+            </div>
+            <div class="settings-group">
+                <h3>Lecture</h3>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Qualité vidéo automatique</span>
+                        <small>Adapter automatiquement la qualité</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="autoQuality">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Lecture automatique</span>
+                        <small>Lancer l'épisode suivant automatiquement</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="autoPlay">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Sous-titres</span>
+                        <small>Afficher les sous-titres par défaut</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" checked id="subtitlesDefault">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="settings-group">
+                <h3>Confidentialité</h3>
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <span>Partage de données</span>
+                        <small>Partager mes données de visionnage</small>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="dataShare">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+            <button class="btn btn-play btn-full" onclick="saveSettings()">Sauvegarder les paramètres</button>
+        </div>
+    </div>
+
+    <!-- ===== SUBSCRIPTION / PAYMENT MODAL ===== -->
+    <div class="modal-overlay" id="subscriptionModalOverlay">
+        <div class="subscription-modal">
+            <button class="modal-close" onclick="closeSubscriptionModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+
+            <div class="sub-header">
+                <span class="sub-crown">👑</span>
+                <h2>Devenez Premium Kaze</h2>
+                <p class="sub-subtitle">Accès illimité à tous les animes, sans publicités, téléchargement HD</p>
+            </div>
+
+            <!-- Plans -->
+            <div class="sub-plans">
+                <div class="sub-plan" id="planFree">
+                    <div class="plan-header">
+                        <h3>Gratuit</h3>
+                        <div class="plan-price">
+                            <span class="price-amount">0</span>
+                            <span class="price-currency">FCFA</span>
+                            <span class="price-period">/mois</span>
+                        </div>
+                    </div>
+                    <ul class="plan-features">
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Accès limité aux animes</li>
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Qualité 480p</li>
+                        <li class="excluded"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg> Publicités incluses</li>
+                        <li class="excluded"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg> Pas de téléchargement</li>
+                    </ul>
+                    <button class="btn btn-outline btn-full" id="selectFreeBtn" onclick="selectPlan('free')">Plan actuel</button>
+                </div>
+
+                <div class="sub-plan plan-premium" id="planPremium">
+                    <div class="plan-badge-popular">POPULAIRE</div>
+                    <div class="plan-header">
+                        <h3>Premium</h3>
+                        <div class="plan-price">
+                            <span class="price-amount">5 000</span>
+                            <span class="price-currency">FCFA</span>
+                            <span class="price-period">/mois</span>
+                        </div>
+                    </div>
+                    <ul class="plan-features">
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Accès ILLIMITÉ</li>
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Qualité 1080p Full HD</li>
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Zéro publicité</li>
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Téléchargement hors-ligne</li>
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Nouveautés en avant-première</li>
+                        <li class="included"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg> Support prioritaire WhatsApp</li>
+                    </ul>
+                    <button class="btn btn-play btn-full" id="selectPremiumBtn" onclick="selectPlan('premium')">Choisir Premium</button>
+                </div>
+            </div>
+
+            <!-- Section Paiement -->
+            <div class="payment-section" id="paymentSection" style="display:none;">
+                <h3 class="payment-title">Choisir le mode de paiement</h3>
+                <p class="payment-amount-display">Montant : <strong>5 000 FCFA</strong> / mois</p>
+
+                <div class="payment-methods">
+                    <!-- Orange Money -->
+                    <label class="payment-method" id="payOrange">
+                        <input type="radio" name="paymentMethod" value="orange_money" onchange="onPaymentMethodChange()">
+                        <div class="payment-card">
+                            <div class="payment-logo orange-money-logo">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="#FF6600"><rect x="2" y="2" width="20" height="20" rx="4"/><text x="12" y="16" font-size="10" font-weight="bold" fill="white" text-anchor="middle" font-family="sans-serif">OM</text></svg>
+                                <span>Orange Money</span>
+                            </div>
+                            <small>Paiement mobile sécurisé</small>
+                        </div>
+                    </label>
+
+                    <!-- MTN Mobile Money -->
+                    <label class="payment-method" id="payMTN">
+                        <input type="radio" name="paymentMethod" value="mtn_momo" onchange="onPaymentMethodChange()">
+                        <div class="payment-card">
+                            <div class="payment-logo mtn-momo-logo">
+                                <svg width="28" height="28" viewBox="0 0 24 24" fill="#FFCC00"><rect x="2" y="2" width="20" height="20" rx="4"/><text x="12" y="16" font-size="8" font-weight="bold" fill="#333" text-anchor="middle" font-family="sans-serif">MTN</text></svg>
+                                <span>MTN Mobile Money</span>
+                            </div>
+                            <small>Paiement mobile sécurisé</small>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Formulaire Orange Money -->
+                <div class="payment-form" id="orangeMoneyForm" style="display:none;">
+                    <div class="form-group">
+                        <label for="omPhone">Numéro Orange Money</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+237</span>
+                            <input type="tel" id="omPhone" placeholder="6XX XXX XXX" pattern="[0-9]{9}" required>
+                        </div>
+                    </div>
+                    <div class="payment-steps">
+                        <div class="step-item">
+                            <div class="step-number">1</div>
+                            <p>Entrez votre numéro Orange Money</p>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">2</div>
+                            <p>Vous recevrez un SMS de confirmation (USSD #144#)</p>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">3</div>
+                            <p>Confirmez avec votre code PIN Orange Money</p>
+                        </div>
+                    </div>
+                    <div class="payment-summary">
+                        <div class="summary-row"><span>Abonnement Premium</span><strong>5 000 FCFA</strong></div>
+                        <div class="summary-row"><span>Frais</span><strong>Gratuit</strong></div>
+                        <div class="summary-row summary-total"><span>Total</span><strong>5 000 FCFA</strong></div>
+                    </div>
+                    <button class="btn btn-play btn-full btn-orange-money" onclick="processPayment('orange_money')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="2" y="2" width="20" height="20" rx="4"/><text x="12" y="16" font-size="10" font-weight="bold" fill="#FF6600" text-anchor="middle" font-family="sans-serif">OM</text></svg>
+                        Payer 5 000 FCFA avec Orange Money
+                    </button>
+                </div>
+
+                <!-- Formulaire MTN Mobile Money -->
+                <div class="payment-form" id="mtnMomoForm" style="display:none;">
+                    <div class="form-group">
+                        <label for="mtnPhone">Numéro MTN Mobile Money</label>
+                        <div class="phone-input-group">
+                            <span class="phone-prefix">+237</span>
+                            <input type="tel" id="mtnPhone" placeholder="6XX XXX XXX" pattern="[0-9]{9}" required>
+                        </div>
+                    </div>
+                    <div class="payment-steps">
+                        <div class="step-item">
+                            <div class="step-number">1</div>
+                            <p>Entrez votre numéro MTN MoMo</p>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">2</div>
+                            <p>Vous recevrez une notification de paiement (*126#)</p>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-number">3</div>
+                            <p>Confirmez avec votre code PIN MTN</p>
+                        </div>
+                    </div>
+                    <div class="payment-summary">
+                        <div class="summary-row"><span>Abonnement Premium</span><strong>5 000 FCFA</strong></div>
+                        <div class="summary-row"><span>Frais</span><strong>Gratuit</strong></div>
+                        <div class="summary-row summary-total"><span>Total</span><strong>5 000 FCFA</strong></div>
+                    </div>
+                    <button class="btn btn-play btn-full btn-mtn-momo" onclick="processPayment('mtn_momo')">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="2" y="2" width="20" height="20" rx="4"/><text x="12" y="16" font-size="8" font-weight="bold" fill="#FFCC00" text-anchor="middle" font-family="sans-serif">MTN</text></svg>
+                        Payer 5 000 FCFA avec MTN MoMo
+                    </button>
+                </div>
+
+                <!-- Statut du paiement -->
+                <div class="payment-status" id="paymentStatus" style="display:none;">
+                    <div class="payment-spinner"></div>
+                    <p id="paymentStatusText">Traitement du paiement en cours...</p>
+                </div>
+
+                <!-- Confirmation -->
+                <div class="payment-success" id="paymentSuccess" style="display:none;">
+                    <div class="success-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+                    </div>
+                    <h3>Paiement réussi !</h3>
+                    <p id="paymentSuccessMsg">Votre abonnement Premium est maintenant actif. Profitez de tous les animes !</p>
+                    <button class="btn btn-play btn-full" onclick="closeSubscriptionModal();">C'est parti !</button>
+                </div>
+            </div>
+
+            <div class="sub-footer-info">
+                <p>Annulez à tout moment. Aucun engagement. Support disponible 24/7 sur <a href="https://wa.me/2376XXXXXXXXX" target="_blank" class="whatsapp-link">WhatsApp</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MY LIST MODAL ===== -->
+    <div class="modal-overlay" id="myListModalOverlay">
+        <div class="mylist-modal">
+            <button class="modal-close" onclick="closeMyListModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <h2 class="mylist-title">Ma Liste d'Animes</h2>
+            <div class="mylist-content" id="myListContent">
+                <p class="mylist-empty">Votre liste est vide. Cliquez sur le bookmark d'un anime pour l'ajouter.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== A PROPOS MODAL ===== -->
+    <div class="modal-overlay" id="aboutModalOverlay">
+        <div class="info-modal">
+            <button class="modal-close" onclick="closeAboutModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <div class="auth-logo" style="margin-bottom:12px;"><span class="logo-otaku">KAZE</span><span class="logo-flix">STREAM</span></div>
+            <h2>A propos de KazeStream</h2>
+            <h3>Qui sommes-nous ?</h3>
+            <p>KazeStream est la premiere plateforme de streaming d'anime dediee aux passionnes d'Afrique centrale et de l'Ouest. Lancee en 2024 au Cameroun, notre mission est de rendre la culture japonaise accessible a tous avec des prix adaptes au marche africain. Nous croyons que chaque fan merite un acces facile, rapide et abordable a ses animes preferes, que ce soit sur mobile, tablette ou ordinateur.</p>
+            <h3>Notre mission</h3>
+            <p>Rendre l'anime accessible a tous en Afrique en offrant un catalogue riche et diversifie, un streaming de haute qualite, des prix abordables grace a des solutions de paiement locales (Orange Money, MTN Mobile Money), et un support client reactif disponible 24h/24. Nous voulons creer une communaute vibrante de fans d'anime a travers tout le continent.</p>
+            <h3>Nos chiffres</h3>
+            <div class="info-stats">
+                <div class="info-stat-item"><span class="info-stat-number">500+</span><span class="info-stat-label">Animes</span></div>
+                <div class="info-stat-item"><span class="info-stat-number">10 000+</span><span class="info-stat-label">Episodes</span></div>
+                <div class="info-stat-item"><span class="info-stat-number">50 000+</span><span class="info-stat-label">Utilisateurs</span></div>
+                <div class="info-stat-item"><span class="info-stat-number">6</span><span class="info-stat-label">Pays africains</span></div>
+            </div>
+            <div class="info-divider"></div>
+            <h3>Notre equipe</h3>
+            <p>KazeStream est porte par une equipe de passionnes d'anime et de technologie bases a Douala, Cameroun. Notre equipe combine une expertise technique solide avec une connaissance approfondie de la culture anime pour offrir la meilleure experience de streaming possible. Chaque membre de notre equipe est un fan convaincu qui utilise la plateforme au quotidien.</p>
+        </div>
+    </div>
+
+    <!-- ===== CONDITIONS D'UTILISATION MODAL ===== -->
+    <div class="modal-overlay" id="cguModalOverlay">
+        <div class="info-modal">
+            <button class="modal-close" onclick="closeCGUModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <h2>Conditions d'utilisation</h2>
+            <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:16px;">Derniere mise a jour : Mai 2025</p>
+            <h3>1. Acceptation des conditions</h3>
+            <p>En creant un compte ou en utilisant KazeStream, vous acceptez les presentes conditions d'utilisation dans leur integralite. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser le service. Nous nous reservons le droit de modifier ces conditions a tout moment, et les modifications prendront effet des leur publication sur la plateforme.</p>
+            <h3>2. Description du service</h3>
+            <p>KazeStream est un service de streaming et de telechargement d'animes en ligne. Le service propose un catalogue d'animes en version originale sous-titreee et en version franchise. L'acces a certaines fonctionnalites (telechargement, qualite HD, acces illimite) est reserve aux abonnes Premium souscrivant a notre offre payante.</p>
+            <h3>3. Comptes utilisateurs</h3>
+            <p>Vous devez fournir des informations exactes et a jour lors de la creation de votre compte. Vous etres responsable de la securite de votre mot de passe et de toutes les activites realisees depuis votre compte. Tout compte inactif pendant plus de 12 mois peut etre supprime. L'utilisateur doit avoir au moins 16 ans pour utiliser le service.</p>
+            <h3>4. Abonnement Premium</h3>
+            <p>L'abonnement Premium est propose au tarif de 5 000 FCFA par mois avec renouvellement automatique. Le paiement s'effectue via Orange Money ou MTN Mobile Money. Vous pouvez annuler votre abonnement a tout moment depuis votre espace profil. L'annulation prend effet a la fin de la periode en cours. Aucun remboursement partiel n'est effectue en cours de periode.</p>
+            <h3>5. Contenu</h3>
+            <p>Les animes disponibles sur KazeStream sont licences et distribues dans le respect des droits de propriete intellectuelle. Toute copie, redistribution ou exploitation commerciale du contenu sans autorisation prealable est strictement interdite et pourra entrainer des poursuites legales. Les sous-titres sont realises par notre equipe et ne peuvent etre reutilises.</p>
+            <h3>6. Paiement</h3>
+            <p>Les paiements sont traites de maniere securisee via Orange Money et MTN Mobile Money. KazeStream ne stocke aucune donnee bancaire. En cas de probleme de paiement, veuillez contacter notre support via WhatsApp ou par email a support@kazestream.com. Les frais de transaction sont a la charge de KazeStream.</p>
+            <h3>7. Responsabilite</h3>
+            <p>KazeStream s'efforce de maintenir un service continu et sans interruption, mais ne peut garantir une disponibilite permanente. Nous ne sommes pas responsables des interruptions dues a des causes exterieures (pannes de reseau, maintenance des operateurs de paiement). La responsabilite de KazeStream est limitee au montant de l'abonnement paye par l'utilisateur.</p>
+            <h3>8. Modifications</h3>
+            <p>KazeStream se reserve le droit de modifier ces conditions a tout moment. Les utilisateurs seront informes des modifications par notification sur la plateforme ou par email. L'utilisation continue du service apres publication des modifications vaut acceptance des nouvelles conditions.</p>
+            <h3>9. Droit applicable</h3>
+            <p>Les presentes conditions sont soumises au droit camerounais. En cas de litige, les tribunaux de Douala seront seuls competents. Avant toute action legale, les parties s'engagent a rechercher une solution amiable par mediation ou par contact direct avec le support.</p>
+        </div>
+    </div>
+
+    <!-- ===== CONFIDENTIALITE MODAL ===== -->
+    <div class="modal-overlay" id="privacyModalOverlay">
+        <div class="info-modal">
+            <button class="modal-close" onclick="closePrivacyModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <h2>Politique de Confidentialite</h2>
+            <p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:16px;">Derniere mise a jour : Mai 2025</p>
+            <h3>1. Donnees collectees</h3>
+            <p>KazeStream collecte les donnees suivantes : votre nom et prenom, votre adresse e-mail, votre numero de telephone, vos preferences de genres d'anime, votre historique de visionnage, et votre abonnement. Ces donnees sont necessaires au bon fonctionnement du service et a la personnalisation de votre experience utilisateur sur la plateforme.</p>
+            <h3>2. Utilisation des donnees</h3>
+            <p>Vos donnees sont utilisees pour : personnaliser votre experience et vous recommander des animes adaptes a vos gouts, ameliorer notre service et nos contenus, vous envoyer des notifications concernant les nouveautes, les mises a jour et votre abonnement, traiter vos paiements et gerer votre compte Premium, et fournir un support client efficace et repondre a vos demandes.</p>
+            <h3>3. Protection des donnees</h3>
+            <p>Nous mettons en oeuvre des mesures de securite techniques et organisationnelles appropriees pour proteger vos donnees contre tout acces non autorise, toute modification, divulgation ou destruction. Vos donnees sont chiffrees lors du transit et au repos. KazeStream ne vend, ne loue et ne partage jamais vos donnees personnelles avec des tiers a des fins commerciales.</p>
+            <h3>4. Cookies</h3>
+            <p>KazeStream utilise des cookies essentiels pour le fonctionnement du site (session, authentification), des cookies de performance pour analyser l'utilisation du site et ameliorer nos services, et des cookies de fonctionnalite pour memoriser vos preferences (theme, langue, qualite video). Vous pouvez desactiver les cookies non essentiels dans les parametres de votre navigateur.</p>
+            <h3>5. Vos droits</h3>
+            <p>Conformement a la legislation en vigueur, vous disposez des droits suivants : droit d'acces a vos donnees personnelles, droit de rectification en cas d'erreur, droit de suppression de vos donnees sur demande, droit a la portabilite de vos donnees, et droit d'opposition au traitement de vos donnees. Pour exercer ces droits, contactez-nous a support@kazestream.com.</p>
+            <h3>6. Contact</h3>
+            <p>Pour toute question relative a la confidentialite ou pour exercer vos droits, vous pouvez nous contacter par email a <strong>support@kazestream.com</strong> ou via notre support WhatsApp disponible 24h/24. Nous nous engageons a repondre a toute demande dans un delai maximum de 30 jours ouvrables.</p>
+        </div>
+    </div>
+
+    <!-- ===== CENTRE D'AIDE MODAL ===== -->
+    <div class="modal-overlay" id="helpModalOverlay">
+        <div class="info-modal">
+            <button class="modal-close" onclick="closeHelpModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <h2>Centre d'aide</h2>
+            <p style="margin-bottom:16px;">Trouvez rapidement les reponses aux questions les plus frequentes.</p>
+            <h3>Questions frequentes</h3>
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFAQ(this)">Comment creer un compte ? <span class="faq-icon">+</span></button>
+                <div class="faq-answer"><p>Cliquez sur "Creer un compte" dans le menu, puis remplissez le formulaire avec votre nom, email, telephone et mot de passe. Vous pouvez aussi vous inscrire directement via WhatsApp. Le compte gratuit vous donne un acces limite a certains animes.</p></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFAQ(this)">Comment s'abonner a Premium ? <span class="faq-icon">+</span></button>
+                <div class="faq-answer"><p>Rendez-vous dans "Mon Abonnement" depuis votre profil ou directement via le menu. Choisissez le plan Premium a 5 000 FCFA/mois, puis selectionnez votre mode de paiement (Orange Money ou MTN Mobile Money). Suivez les instructions de confirmation et votre abonnement sera active immediatement.</p></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFAQ(this)">Quels moyens de paiement acceptez-vous ? <span class="faq-icon">+</span></button>
+                <div class="faq-answer"><p>Nous acceptons Orange Money et MTN Mobile Money, les deux principaux moyens de paiement mobile au Cameroun et en Afrique centrale. Le paiement est securise et immediat. Les frais de transaction sont a notre charge.</p></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFAQ(this)">Comment annuler mon abonnement ? <span class="faq-icon">+</span></button>
+                <div class="faq-answer"><p>Vous pouvez annuler votre abonnement a tout moment depuis votre profil, section "Mon Abonnement", puis en cliquant sur "Annuler". L'annulation prend effet a la fin de la periode en cours. Vous continuerez a beneficier du Premium jusqu'a l'expiration de votre periode payee.</p></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFAQ(this)">Pourquoi je ne peux pas telecharger ? <span class="faq-icon">+</span></button>
+                <div class="faq-answer"><p>Le telechargement est une fonctionnalite reservee aux abonnes Premium. Si vous etes abonne et que le probleme persiste, verifiez votre connexion internet et l'espace de stockage disponible sur votre appareil. Si le probleme continue, contactez notre support.</p></div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question" onclick="toggleFAQ(this)">Comment contacter le support ? <span class="faq-icon">+</span></button>
+                <div class="faq-answer"><p>Vous pouvez nous joindre 24h/24 par WhatsApp au numero indique dans le footer du site, ou par email a support@kazestream.com. Vous pouvez egalement utiliser le formulaire "Signaler un probleme" disponible dans le menu. Notre equipe s'engage a repondre sous 24 heures.</p></div>
+            </div>
+            <div class="help-contact">
+                <h4>Besoin d'aide supplementaire ?</h4>
+                <p>Contactez-nous directement sur <a href="https://wa.me/237600000000" target="_blank">WhatsApp</a> ou par email a <strong>support@kazestream.com</strong></p>
+                <p>Nous sommes disponibles 24h/24, 7j/7.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SIGNALER UN PROBLEME MODAL ===== -->
+    <div class="modal-overlay" id="reportModalOverlay">
+        <div class="info-modal">
+            <button class="modal-close" onclick="closeReportModal()" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <h2>Signaler un probleme</h2>
+            <p style="margin-bottom:16px;">Decrivez votre probleme et nous vous repondrons dans les plus brefs delais.</p>
+            <form onsubmit="handleReportSubmit(event)">
+                <div class="form-group">
+                    <label for="reportType">Type de probleme</label>
+                    <select id="reportType" class="setting-select" style="width:100%;padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:0.9rem;outline:none;">
+                        <option value="bug">Bug technique</option>
+                        <option value="lecture">Probleme de lecture</option>
+                        <option value="paiement">Probleme de paiement</option>
+                        <option value="contenu">Contenu inapproprie</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="reportDesc">Description du probleme</label>
+                    <textarea id="reportDesc" rows="4" placeholder="Decrivez votre probleme en detail..." style="width:100%;padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:0.9rem;outline:none;resize:vertical;" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="reportEmail">Adresse e-mail</label>
+                    <input type="email" id="reportEmail" placeholder="votre@email.com" style="padding:12px 16px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-size:0.9rem;font-family:var(--font);outline:none;" required>
+                </div>
+                <div class="form-group">
+                    <label for="reportFile">Capture d'ecran (optionnel)</label>
+                    <input type="file" id="reportFile" accept="image/*" style="padding:10px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:var(--text-secondary);font-size:0.85rem;font-family:var(--font);width:100%;">
+                </div>
+                <button type="submit" class="btn btn-play btn-full" style="margin-top:8px;">Envoyer le signalement</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero" id="hero">
+        <div class="hero-slide active" id="heroSlide">
+            <div class="hero-bg"></div>
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <span class="hero-badge" id="heroBadge">Populaire #1</span>
+                <h1 class="hero-title" id="heroTitle">Attack on Titan</h1>
+                <div class="hero-meta">
+                    <span class="hero-year" id="heroYear">2023</span>
+                    <span class="hero-episodes" id="heroEpisodes">87 Episodes</span>
+                </div>
+                <p class="hero-description" id="heroDescription">
+                    Dans un monde où l'humanité vit enfermée derrière d'immenses murs pour se protéger des Titans, des créatures géantes qui dévorent les humains, Eren Yeager et ses amis rejoignent l'armée pour combattre ces monstres après la destruction de leur ville natale.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn btn-play" id="heroPlayBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        Regarder
+                    </button>
+                    <button class="btn btn-info" id="heroInfoBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                        Plus d'infos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SEARCH RESULTS ===== -->
+    <section class="search-results" id="searchResults" style="display:none;">
+        <h2 class="section-title">Résultats de recherche pour "<span id="searchQuery"></span>"</h2>
+        <div class="anime-grid" id="searchGrid"></div>
+    </section>
+
+    <!-- ===== ANIME GRID ===== -->
+    <main class="main-content" id="mainContent">
+        <section class="anime-section">
+            <h2 class="section-title"><span class="title-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e50914" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></span> Tous les Animes</h2>
+            <div class="anime-grid" id="animeGrid"></div>
+        </section>
+    </main>
+
+    <!-- ===== ANIME MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="animeModal">
+            <button class="modal-close" id="modalClose" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <div class="modal-hero">
+                <div class="modal-hero-bg" id="modalBg"></div>
+                <div class="modal-hero-overlay"></div>
+            </div>
+            <div class="modal-body">
+                <div class="modal-info">
+                    <h2 class="modal-title" id="modalTitle"></h2>
+                    <div class="modal-meta">
+                        <span class="modal-year" id="modalYear"></span>
+                        <span class="modal-status" id="modalStatus"></span>
+                        <span class="modal-episodes" id="modalEpisodes"></span>
+                    </div>
+                    <p class="modal-description" id="modalDescription"></p>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-play modal-play-btn" id="modalPlayBtn">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        <span>Regarder Episode 1</span>
+                    </button>
+                    <button class="btn btn-secondary" id="modalBookmarkBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                        <span>Ma Liste</span>
+                    </button>
+                    <button class="btn btn-secondary" id="modalDownloadBtn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        <span>Télécharger</span>
+                    </button>
+                </div>
+                <div class="episodes-section">
+                    <h3 class="episodes-title">Épisodes</h3>
+                    <div class="episodes-list" id="episodesList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== VIDEO PLAYER ===== -->
+    <div class="video-player-overlay" id="videoPlayerOverlay">
+        <div class="video-player" id="videoPlayer">
+            <button class="video-close" id="videoClose" aria-label="Fermer le lecteur">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <div class="video-container" id="videoContainer">
+                <video id="mainVideo" playsinline>
+                    <!-- Les sources seront générées dynamiquement par JS selon les formats disponibles -->
+                </video>
+                <div class="video-placeholder" id="videoPlaceholder">
+                    <div class="play-overlay" id="playOverlay">
+                        <div class="play-btn-large">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                    <img src="" alt="" id="videoThumb">
+                </div>
+                <!-- Loading spinner -->
+                <div class="video-loading" id="videoLoading" style="display:none;">
+                    <div class="video-spinner"></div>
+                    <p>Chargement...</p>
+                </div>
+                <!-- Quality & Format badge -->
+                <div class="video-quality-badge" id="videoQualityBadge">1080p</div>
+                <div class="video-format-badge" id="videoFormatBadge">MP4</div>
+            </div>
+            <div class="video-controls">
+                <div class="video-progress" id="videoProgress">
+                    <div class="video-progress-bar" id="videoProgressBar"></div>
+                    <div class="video-progress-buffered" id="videoBufferedBar"></div>
+                </div>
+                <div class="video-controls-row">
+                    <div class="controls-left">
+                        <button class="ctrl-btn" id="videoPlayPauseBtn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                        </button>
+                        <div class="video-volume-control">
+                            <button class="ctrl-btn" id="videoMuteBtn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                            </button>
+                            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="1">
+                        </div>
+                        <span class="video-time">
+                            <span id="videoCurrentTime">00:00</span>
+                            <span> / </span>
+                            <span id="videoDuration">00:00</span>
+                        </span>
+                    </div>
+                    <div class="controls-right">
+                        <!-- Quality Selector -->
+                        <div class="quality-selector" id="qualitySelector">
+                            <button class="ctrl-btn quality-btn" id="qualityBtn" title="Qualité vidéo">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                                <span class="quality-label" id="qualityLabel">1080p</span>
+                            </button>
+                            <div class="quality-dropdown" id="qualityDropdown">
+                                <div class="quality-option active" data-quality="1080" onclick="changeVideoQuality('1080')">
+                                    <span class="quality-option-label">1080p</span>
+                                    <span class="quality-option-tag tag-hd">Full HD</span>
+                                    <svg class="quality-check" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                </div>
+                                <div class="quality-option" data-quality="720" onclick="changeVideoQuality('720')">
+                                    <span class="quality-option-label">720p</span>
+                                    <span class="quality-option-tag tag-hd">HD</span>
+                                    <svg class="quality-check" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                </div>
+                                <div class="quality-option" data-quality="480" onclick="changeVideoQuality('480')">
+                                    <span class="quality-option-label">480p</span>
+                                    <span class="quality-option-tag tag-sd">SD</span>
+                                    <svg class="quality-check" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="ctrl-btn" id="videoNextBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4l10 8-10 8V4z"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                        </button>
+                        <button class="ctrl-btn" id="videoFullscreenBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="video-info-bar">
+                <span class="video-now-playing" id="videoNowPlaying"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DOWNLOAD MODAL ===== -->
+    <div class="modal-overlay" id="downloadModalOverlay">
+        <div class="download-modal" id="downloadModal">
+            <button class="modal-close" id="downloadClose" aria-label="Fermer">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+            </button>
+            <div class="download-header">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                <h2>Télécharger</h2>
+                <p id="downloadAnimeTitle"></p>
+            </div>
+            <div class="download-episodes">
+                <h3>Sélectionner les épisodes</h3>
+                <div class="download-ep-controls">
+                    <button class="btn btn-sm" id="selectAllEpisodes">Tout sélectionner</button>
+                    <button class="btn btn-sm btn-outline" id="deselectAllEpisodes">Tout désélectionner</button>
+                </div>
+                <div class="download-ep-grid" id="downloadEpGrid"></div>
+            </div>
+            <button class="btn btn-play btn-download-start" id="startDownloadBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Lancer le téléchargement
+            </button>
+            <div class="download-progress" id="downloadProgress" style="display:none;">
+                <div class="progress-bar-container"><div class="progress-bar" id="downloadProgressBar"></div></div>
+                <p id="downloadStatus">Téléchargement en cours...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-body">
+                <div class="footer-socials">
+                    <a href="https://wa.me/237600000000" target="_blank" class="social-link social-whatsapp" aria-label="WhatsApp">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="Facebook">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="TikTok">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                    </a>
+                    <a href="#" class="social-link" aria-label="YouTube">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                    </a>
+                </div>
+                <div class="footer-payment-methods">
+                    <h4>Moyens de paiement acceptes</h4>
+                    <div class="payment-badges">
+                        <span class="pay-badge orange-badge">Orange Money</span>
+                        <span class="pay-badge mtn-badge">MTN MoMo</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2025 KazeStream. Tous droits réservés. Fait avec passion pour les fans d'anime d'Afrique.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KazeStream - Panneau d'Administration Base de Données</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#0a0a0a;--bg2:#141414;--bg3:#1c1c1c;--bg4:#252525;
+            --text:#fff;--text2:#b3b3b3;--text3:#808080;
+            --accent:#e50914;--accent2:#f40612;--green:#22c55e;--blue:#3b82f6;--yellow:#f59e0b;--purple:#a855f7;
+            --border:#333;--radius:12px;--shadow:0 4px 24px rgba(0,0,0,0.5);
+            --font:'Poppins',sans-serif;
+        }
+        html{font-size:14px}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+
+        /* SIDEBAR */
+        .sidebar{position:fixed;top:0;left:0;width:260px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);padding:20px 0;z-index:100;transition:transform .3s}
+        .sidebar-logo{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+        .sidebar-logo h1{font-size:1.4rem;font-weight:800}
+        .sidebar-logo span{color:var(--accent)}
+        .sidebar-logo p{color:var(--text3);font-size:.75rem;margin-top:2px}
+        .sidebar-nav{padding:10px 0}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;cursor:pointer;transition:all .2s;color:var(--text2);font-weight:500;font-size:.9rem;border-left:3px solid transparent}
+        .nav-item:hover{background:var(--bg3);color:var(--text)}
+        .nav-item.active{background:rgba(229,9,20,.1);color:var(--accent);border-left-color:var(--accent)}
+        .nav-item svg{width:20px;height:20px;flex-shrink:0}
+        .nav-divider{height:1px;background:var(--border);margin:10px 20px}
+
+        /* MAIN */
+        .main{margin-left:260px;padding:30px;min-height:100vh}
+        .page{display:none}
+        .page.active{display:block}
+
+        /* HEADER */
+        .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+        .page-header h2{font-size:1.5rem;font-weight:700}
+        .page-header p{color:var(--text3);font-size:.85rem;margin-top:4px}
+
+        /* STATS CARDS */
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:30px}
+        .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:all .3s}
+        .stat-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+        .stat-card .label{color:var(--text3);font-size:.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+        .stat-card .value{font-size:2rem;font-weight:800}
+        .stat-card .sub{color:var(--text3);font-size:.75rem;margin-top:4px}
+        .stat-card.red .value{color:var(--accent)}
+        .stat-card.green .value{color:var(--green)}
+        .stat-card.blue .value{color:var(--blue)}
+        .stat-card.yellow .value{color:var(--yellow)}
+        .stat-card.purple .value{color:var(--purple)}
+
+        /* BUTTONS */
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border:none;border-radius:8px;font-family:var(--font);font-size:.85rem;font-weight:600;cursor:pointer;transition:all .2s}
+        .btn-primary{background:var(--accent);color:#fff}
+        .btn-primary:hover{background:var(--accent2);transform:translateY(-1px)}
+        .btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+        .btn-secondary:hover{border-color:var(--text3)}
+        .btn-danger{background:#dc2626;color:#fff}
+        .btn-danger:hover{background:#ef4444}
+        .btn-sm{padding:6px 14px;font-size:.8rem}
+        .btn-success{background:var(--green);color:#fff}
+
+        /* TABLE */
+        .table-container{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+        .table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:12px}
+        .table-header h3{font-size:1rem}
+        .search-input{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-family:var(--font);font-size:.85rem;width:260px;outline:none;transition:border .2s}
+        .search-input:focus{border-color:var(--accent)}
+        table{width:100%;border-collapse:collapse}
+        th{text-align:left;padding:12px 16px;color:var(--text3);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;font-weight:600;border-bottom:1px solid var(--border);background:var(--bg3)}
+        td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:.85rem;vertical-align:middle}
+        tr:hover td{background:var(--bg3)}
+        .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.7rem;font-weight:600;text-transform:uppercase}
+        .badge-green{background:rgba(34,197,94,.15);color:var(--green)}
+        .badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+        .badge-yellow{background:rgba(245,158,11,.15);color:var(--yellow)}
+        .badge-red{background:rgba(229,9,20,.15);color:var(--accent)}
+        .badge-purple{background:rgba(168,85,247,.15);color:var(--purple)}
+
+        /* MODAL */
+        .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center;padding:20px}
+        .modal-overlay.active{display:flex}
+        .modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:700px;max-height:90vh;overflow-y:auto}
+        .modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+        .modal-header h3{font-size:1.1rem}
+        .modal-close{background:none;border:none;color:var(--text3);cursor:pointer;font-size:1.5rem;line-height:1;padding:4px 8px;border-radius:6px;transition:all .2s}
+        .modal-close:hover{color:var(--text);background:var(--bg3)}
+        .modal-body{padding:24px}
+        .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+        /* FORM */
+        .form-group{margin-bottom:18px}
+        .form-group label{display:block;margin-bottom:6px;font-size:.85rem;font-weight:500;color:var(--text2)}
+        .form-group input,.form-group select,.form-group textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;font-family:var(--font);font-size:.85rem;outline:none;transition:border .2s}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent)}
+        .form-group textarea{min-height:80px;resize:vertical}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+        .form-hint{color:var(--text3);font-size:.75rem;margin-top:4px}
+
+        /* TABS */
+        .tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+        .tab{padding:10px 20px;cursor:pointer;color:var(--text3);font-weight:500;font-size:.85rem;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+        .tab:hover{color:var(--text)}
+        .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+        /* TOAST */
+        .toast-container{position:fixed;top:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+        .toast{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 20px;min-width:300px;max-width:420px;display:flex;align-items:center;gap:12px;animation:slideIn .3s ease;box-shadow:var(--shadow)}
+        .toast.success{border-left:4px solid var(--green)}
+        .toast.error{border-left:4px solid var(--accent)}
+        .toast.info{border-left:4px solid var(--blue)}
+        .toast-icon{font-size:1.3rem;flex-shrink:0}
+        .toast-msg{font-size:.85rem}
+        .toast-msg strong{display:block;margin-bottom:2px}
+        .toast-msg p{color:var(--text2);font-size:.8rem;margin:0}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+        /* EPISODE GRID */
+        .ep-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin:16px 0}
+        .ep-chip{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center;cursor:pointer;transition:all .2s;font-size:.85rem;font-weight:500}
+        .ep-chip:hover{border-color:var(--accent)}
+        .ep-chip.selected{background:var(--accent);border-color:var(--accent)}
+        .ep-chip.has-data{background:rgba(34,197,94,.1);border-color:var(--green);color:var(--green)}
+
+        /* LOADING */
+        .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text3)}
+        .spinner{width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* EMPTY STATE */
+        .empty{text-align:center;padding:60px 20px;color:var(--text3)}
+        .empty svg{width:48px;height:48px;margin-bottom:12px;opacity:.5}
+        .empty h4{margin-bottom:6px;color:var(--text2)}
+
+        /* ACTION ICONS */
+        .actions{display:flex;gap:6px}
+        .action-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text2);cursor:pointer;transition:all .2s}
+        .action-btn:hover{border-color:var(--text3);color:var(--text)}
+        .action-btn.danger:hover{border-color:var(--accent);color:var(--accent);background:rgba(229,9,20,.1)}
+
+        /* COLOR PREVIEW */
+        .color-preview{display:inline-block;width:20px;height:20px;border-radius:4px;vertical-align:middle;margin-right:6px;border:1px solid var(--border)}
+
+        /* RESPONSIVE */
+        .hamburger{display:none;position:fixed;top:16px;left:16px;z-index:200;width:40px;height:40px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;align-items:center;justify-content:center;cursor:pointer}
+        @media(max-width:768px){
+            .sidebar{transform:translateX(-100%)}
+            .sidebar.open{transform:translateX(0)}
+            .main{margin-left:0;padding:20px;padding-top:60px}
+            .hamburger{display:flex}
+            .form-row{grid-template-columns:1fr}
+            .search-input{width:100%}
+            .stats-grid{grid-template-columns:1fr 1fr}
+        }
+
+        /* ANIME DETAIL PANEL */
+        .anime-detail-header{display:flex;gap:20px;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap}
+        .anime-detail-img{width:120px;height:170px;border-radius:10px;object-fit:cover;background:var(--bg3);flex-shrink:0}
+        .anime-detail-info{flex:1;min-width:200px}
+        .anime-detail-info h2{font-size:1.6rem;margin-bottom:4px}
+        .anime-detail-info .jp{color:var(--text3);font-style:italic;font-size:.85rem}
+        .anime-detail-meta{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+        .anime-detail-meta span{display:flex;align-items:center;gap:4px;font-size:.85rem;color:var(--text2)}
+
+        /* SEASON CARD */
+        .season-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:all .2s}
+        .season-card:hover{border-color:var(--text3)}
+        .season-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+        .season-card-header h4{font-size:.95rem}
+        .season-card-meta{color:var(--text3);font-size:.8rem}
+    </style>
+</head>
+<body>
+
+<!-- HAMBURGER MOBILE -->
+<div class="hamburger" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+        <h1>KAZE<span>STREAM</span></h1>
+        <p>Administration Base de Données</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="showPage('dashboard', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            Tableau de bord
+        </div>
+        <div class="nav-item" onclick="showPage('animes', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Animes
+        </div>
+        <div class="nav-item" onclick="showPage('episodes', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            Episodes
+        </div>
+        <div class="nav-item" onclick="showPage('generate', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            Génération en masse
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-item" onclick="showPage('settings', this)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configuration API
+        </div>
+    </nav>
+</aside>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+    <!-- ========== DASHBOARD ========== -->
+    <div class="page active" id="page-dashboard">
+        <div class="page-header">
+            <div>
+                <h2>Tableau de bord</h2>
+                <p>Vue d'ensemble de votre base de données KazeStream</p>
+            </div>
+            <button class="btn btn-secondary" onclick="loadStats()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Actualiser
+            </button>
+        </div>
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card red"><div class="label">Animes</div><div class="value" id="statAnimes">-</div><div class="sub">au total</div></div>
+            <div class="stat-card green"><div class="label">Episodes</div><div class="value" id="statEpisodes">-</div><div class="sub">en base de données</div></div>
+            <div class="stat-card blue"><div class="label">Saisons</div><div class="value" id="statSeasons">-</div><div class="sub">répertoriées</div></div>
+            <div class="stat-card yellow"><div class="label">En cours</div><div class="value" id="statEnCours">-</div><div class="sub">animes en diffusion</div></div>
+            <div class="stat-card purple"><div class="label">Terminés</div><div class="value" id="statTermines">-</div><div class="sub">séries complètes</div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+            <div class="table-container">
+                <div class="table-header"><h3>Top 5 par note</h3></div>
+                <table><thead><tr><th>#</th><th>Anime</th><th>Note</th><th>Ep.</th></tr></thead>
+                <tbody id="top5Body"><tr><td colspan="4" class="loading"><div class="spinner"></div>Chargement...</td></tr></tbody></table>
+            </div>
+            <div class="table-container">
+                <div class="table-header"><h3>Episodes par anime</h3></div>
+                <table><thead><tr><th>Anime</th><th>Episodes en BDD</th></tr></thead>
+                <tbody id="epByAnimeBody"><tr><td colspan="2" class="loading"><div class="spinner"></div>Chargement...</td></tr></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== ANIMES ========== -->
+    <div class="page" id="page-animes">
+        <div class="page-header">
+            <div>
+                <h2>Gestion des Animes</h2>
+                <p>Ajoutez, modifiez ou supprimez des animes dans la base</p>
+            </div>
+            <button class="btn btn-primary" onclick="openAnimeModal()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Nouvel Anime
+            </button>
+        </div>
+        <div class="table-container">
+            <div class="table-header">
+                <h3>Liste des animes</h3>
+                <input type="text" class="search-input" id="animeSearchInput" placeholder="Rechercher un anime..." oninput="filterAnimes(this.value)">
+            </div>
+            <div style="overflow-x:auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:30px">#</th>
+                            <th>Titre</th>
+                            <th>Année</th>
+                            <th>Note</th>
+                            <th>Episodes</th>
+                            <th>Ep. en BDD</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="animesTableBody">
+                        <tr><td colspan="8" class="loading"><div class="spinner"></div>Chargement des animes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== EPISODES ========== -->
+    <div class="page" id="page-episodes">
+        <div class="page-header">
+            <div>
+                <h2>Gestion des Episodes</h2>
+                <p>Ajoutez et modifiez les episodes de chaque anime</p>
+            </div>
+            <div style="display:flex;gap:8px">
+                <select id="epAnimeSelector" class="search-input" onchange="loadAnimeEpisodes(this.value)" style="width:300px">
+                    <option value="">-- Selectionnez un anime --</option>
+                </select>
+                <button class="btn btn-primary" onclick="openEpisodeModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Ajouter Episode
+                </button>
+            </div>
+        </div>
+
+        <div id="episodesContent" style="display:none">
+            <!-- Anime detail header -->
+            <div class="anime-detail-header" id="epAnimeHeader"></div>
+
+            <!-- Tabs for seasons -->
+            <div class="tabs" id="seasonTabs"></div>
+
+            <!-- Episodes table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3 id="epTableTitle">Episodes</h3>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <span style="color:var(--text3);font-size:.8rem" id="epCountLabel"></span>
+                    </div>
+                </div>
+                <div style="overflow-x:auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:60px">N°</th>
+                                <th>Titre</th>
+                                <th>Durée</th>
+                                <th>Gratuit</th>
+                                <th>Video 1080p</th>
+                                <th>Video 720p</th>
+                                <th>Video 480p</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="episodesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="episodesEmpty" class="empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+            <h4>Selectionnez un anime</h4>
+            <p>Choisissez un anime dans le menu déroulant pour voir et gérer ses episodes.</p>
+        </div>
+    </div>
+
+    <!-- ========== GENERATION EN MASSE ========== -->
+    <div class="page" id="page-generate">
+        <div class="page-header">
+            <div>
+                <h2>Génération d'Episodes en Masse</h2>
+                <p>Créez rapidement des centaines d'épisodes pour un anime</p>
+            </div>
+        </div>
+        <div class="table-container" style="max-width:700px">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Anime</label>
+                    <select id="genAnimeSelect" class="search-input" style="width:100%">
+                        <option value="">-- Selectionnez un anime --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Saison (optionnel)</label>
+                    <select id="genSeasonSelect" class="search-input" style="width:100%">
+                        <option value="">-- Sans saison --</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Episode de début</label>
+                        <input type="number" id="genStart" value="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Episode de fin</label>
+                        <input type="number" id="genEnd" value="24" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Préfixe du titre</label>
+                    <input type="text" id="genPrefix" value="Episode" placeholder="ex: Episode, Ep., Chapitre...">
+                </div>
+                <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:18px">
+                    <p style="font-size:.85rem;color:var(--text2)">
+                        <strong style="color:var(--yellow)">Info :</strong> Les épisodes seront générés avec des titres automatiques par défaut.
+                        Vous pourrez les modifier individuellement ensuite dans l'onglet "Episodes".
+                        Les épisodes 1 et 2 seront marqués comme gratuits.
+                    </p>
+                </div>
+                <button class="btn btn-primary" onclick="generateEpisodes()" id="genBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    Générer les épisodes
+                </button>
+                <div id="genResult" style="margin-top:16px;display:none"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== SETTINGS ========== -->
+    <div class="page" id="page-settings">
+        <div class="page-header">
+            <div>
+                <h2>Configuration API</h2>
+                <p>Paramètres de connexion à la base de données</p>
+            </div>
+        </div>
+        <div class="table-container" style="max-width:600px">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>URL de l'API</label>
+                    <input type="text" id="settingApiUrl" value="api/" placeholder="ex: http://localhost/kazestream/api/">
+                    <p class="form-hint">Chemin vers le dossier api/ (relatif ou absolu)</p>
+                </div>
+                <div class="form-group">
+                    <label>Clé API (pour les opérations d'écriture)</label>
+                    <input type="text" id="settingApiKey" value="kazestream-secret-key-2024">
+                    <p class="form-hint">Doit correspondre à la constante API_KEY dans config.php</p>
+                </div>
+                <div style="display:flex;gap:10px">
+                    <button class="btn btn-primary" onclick="saveSettings()">Sauvegarder</button>
+                    <button class="btn btn-secondary" onclick="testConnection()">Tester la connexion</button>
+                </div>
+                <div id="testResult" style="margin-top:16px;display:none"></div>
+
+                <div style="margin-top:30px;padding-top:20px;border-top:1px solid var(--border)">
+                    <h4 style="margin-bottom:12px;color:var(--text2)">Aide rapide - Endpoints API</h4>
+                    <table>
+                        <thead><tr><th>Méthode</th><th>Endpoint</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="badge badge-green">GET</span></td><td>endpoint=animes</td><td>Liste tous les animes</td></tr>
+                            <tr><td><span class="badge badge-green">GET</span></td><td>endpoint=animes&id=5</td><td>Détail d'un anime</td></tr>
+                            <tr><td><span class="badge badge-blue">POST</span></td><td>endpoint=animes</td><td>Créer un anime</td></tr>
+                            <tr><td><span class="badge badge-yellow">PUT</span></td><td>endpoint=animes&id=5</td><td>Modifier un anime</td></tr>
+                            <tr><td><span class="badge badge-red">DELETE</span></td><td>endpoint=animes&id=5</td><td>Supprimer un anime</td></tr>
+                            <tr><td><span class="badge badge-green">GET</span></td><td>endpoint=episodes&anime_id=1</td><td>Episodes d'un anime</td></tr>
+                            <tr><td><span class="badge badge-blue">POST</span></td><td>endpoint=episodes</td><td>Ajouter un épisode</td></tr>
+                            <tr><td><span class="badge badge-blue">POST</span></td><td>endpoint=generate-episodes</td><td>Générer en masse</td></tr>
+                            <tr><td><span class="badge badge-green">GET</span></td><td>endpoint=seasons&anime_id=1</td><td>Saisons d'un anime</td></tr>
+                            <tr><td><span class="badge badge-green">GET</span></td><td>endpoint=stats</td><td>Statistiques</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ========== MODAL : ANIME ========== -->
+<div class="modal-overlay" id="animeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="animeModalTitle">Nouvel Anime</h3>
+            <button class="modal-close" onclick="closeModal('animeModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="animeEditId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Titre *</label>
+                    <input type="text" id="animeTitle" placeholder="Attack on Titan">
+                </div>
+                <div class="form-group">
+                    <label>Titre Japonais</label>
+                    <input type="text" id="animeTitleJp" placeholder="Shingeki no Kyojin">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Année *</label>
+                    <input type="number" id="animeYear" value="2024" min="1990" max="2030">
+                </div>
+                <div class="form-group">
+                    <label>Note (0-10) *</label>
+                    <input type="number" id="animeRating" value="9.0" min="0" max="10" step="0.1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Total Episodes</label>
+                    <input type="number" id="animeEpisodes" value="24" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Statut</label>
+                    <select id="animeStatus">
+                        <option value="En cours">En cours</option>
+                        <option value="Terminé">Terminé</option>
+                        <option value="En attente">En attente</option>
+                        <option value="Annoncé">Annoncé</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Couleur</label>
+                    <input type="color" id="animeColor" value="#e50914">
+                </div>
+                <div class="form-group">
+                    <label>Badge</label>
+                    <select id="animeBadge">
+                        <option value="">Aucun</option>
+                        <option value="new">Nouveau</option>
+                        <option value="top">Top</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Emoji</label>
+                    <input type="text" id="animeEmoji" maxlength="4" placeholder="⚔️">
+                </div>
+                <div class="form-group">
+                    <label>Rang (Top)</label>
+                    <input type="number" id="animeRank" min="1" max="50" placeholder="Vide si non classé">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Image (chemin)</label>
+                <input type="text" id="animeImage" placeholder="images/mon-anime.png" value="images/default.png">
+            </div>
+            <div class="form-group">
+                <label>Genres</label>
+                <input type="text" id="animeGenre" placeholder="Action,Fantasy,Drama">
+                <p class="form-hint">Séparez par des virgules</p>
+            </div>
+            <div class="form-group">
+                <label>Studio</label>
+                <input type="text" id="animeStudio" placeholder="MAPPA, Ufotable...">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="animeDescription" rows="3" placeholder="Description de l'anime..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('animeModal')">Annuler</button>
+            <button class="btn btn-primary" onclick="saveAnime()">Sauvegarder</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL : EPISODE ========== -->
+<div class="modal-overlay" id="episodeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="episodeModalTitle">Nouvel Episode</h3>
+            <button class="modal-close" onclick="closeModal('episodeModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="epEditId">
+            <input type="hidden" id="epAnimeId">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Numero d'episode *</label>
+                    <input type="number" id="epNumber" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Saison</label>
+                    <select id="epSeasonSelect"><option value="">-- Aucune --</option></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Titre *</label>
+                <input type="text" id="epTitle" placeholder="Ep. 1 - Le Commencement">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="epDescription" rows="2" placeholder="Description de l'épisode..."></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Durée</label>
+                    <input type="text" id="epDuration" value="23:45" placeholder="23:45">
+                </div>
+                <div class="form-group">
+                    <label>Gratuit</label>
+                    <select id="epIsFree">
+                        <option value="0">Non (Premium)</option>
+                        <option value="1">Oui (Gratuit)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Date de diffusion</label>
+                <input type="date" id="epAirDate">
+            </div>
+            <div style="padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:18px">
+                <p style="font-size:.85rem;font-weight:600;margin-bottom:12px;color:var(--text2)">URLs des vidéos (optionnel)</p>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Video 1080p</label>
+                    <input type="text" id="epVideo1080" placeholder="videos/anime-slug/ep1/1080.mp4">
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Video 720p</label>
+                    <input type="text" id="epVideo720" placeholder="videos/anime-slug/ep1/720.mp4">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                    <label>Video 480p</label>
+                    <input type="text" id="epVideo480" placeholder="videos/anime-slug/ep1/480.mp4">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('episodeModal')">Annuler</button>
+            <button class="btn btn-primary" onclick="saveEpisode()">Sauvegarder</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MODAL : CONFIRM DELETE ========== -->
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal" style="max-width:420px">
+        <div class="modal-header">
+            <h3>Confirmer la suppression</h3>
+            <button class="modal-close" onclick="closeModal('confirmModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage" style="color:var(--text2)"></p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Annuler</button>
+            <button class="btn btn-danger" id="confirmBtn" onclick="">Supprimer</button>
+        </div>
+    </div>
+</div>
+
+<script>
+/* ============================================
+   KAZESTREAM - Admin Panel JavaScript
+   ============================================ */
+
+// --- Configuration ---
+let API_URL = localStorage.getItem('ks-admin-api') || 'api/';
+let API_KEY = localStorage.getItem('ks-admin-key') || 'kazestream-secret-key-2024';
+
+// --- Cache ---
+let allAnimes = [];
+let currentAnimeId = null;
+let currentSeasonId = null;
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('settingApiUrl').value = API_URL;
+    document.getElementById('settingApiKey').value = API_KEY;
+    loadAnimes();
+    loadStats();
+});
+
+// --- API Helper ---
+async function apiCall(endpoint, method = 'GET', body = null, requireAuth = false) {
+    const url = API_URL + (API_URL.includes('?') ? '&' : '?') + 'endpoint=' + endpoint;
+    const options = {
+        method,
+        headers: { 'Content-Type': 'application/json' }
+    };
+    if (requireAuth) {
+        options.headers['Authorization'] = 'Bearer ' + API_KEY;
+    }
+    if (body) {
+        options.body = JSON.stringify(body);
+    }
+    const res = await fetch(url, options);
+    return await res.json();
+}
+
+// --- Toast ---
+function showToast(type, title, message) {
+    const container = document.getElementById('toastContainer');
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><div class="toast-msg"><strong>${title}</strong><p>${message}</p></div>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}
+
+// --- Navigation ---
+function showPage(pageId, navItem) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + pageId).classList.add('active');
+    if (navItem) navItem.classList.add('active');
+    document.querySelector('.sidebar').classList.remove('open');
+
+    if (pageId === 'generate') populateGenerateSelects();
+}
+
+// --- Modal ---
+function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+
+// --- Close modals on ESC / overlay click ---
+document.addEventListener('keydown', e => { if (e.key === 'Escape') ['animeModal','episodeModal','confirmModal'].forEach(id => closeModal(id)); });
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(overlay.id); });
+});
+
+
+/* ================================================================
+   DASHBOARD / STATS
+   ================================================================ */
+
+async function loadStats() {
+    try {
+        const data = await apiCall('stats');
+        document.getElementById('statAnimes').textContent = data.total_animes;
+        document.getElementById('statEpisodes').textContent = data.total_episodes;
+        document.getElementById('statSeasons').textContent = data.total_seasons;
+        document.getElementById('statEnCours').textContent = data.en_cours;
+        document.getElementById('statTermines').textContent = data.termines;
+
+        // Top 5
+        const top5Html = data.top_5_rating.map((a, i) => `
+            <tr>
+                <td>${i + 1}</td>
+                <td><strong>${a.title}</strong></td>
+                <td><span class="badge badge-yellow">${a.rating}/10</span></td>
+                <td>${a.total_episodes}</td>
+            </tr>
+        `).join('');
+        document.getElementById('top5Body').innerHTML = top5Html;
+
+        // Episodes by anime
+        const epHtml = data.episodes_by_anime.map(a => `
+            <tr>
+                <td>${a.title}</td>
+                <td><span class="badge badge-green">${a.ep_count} episodes</span></td>
+            </tr>
+        `).join('');
+        document.getElementById('epByAnimeBody').innerHTML = epHtml;
+    } catch (err) {
+        document.getElementById('top5Body').innerHTML = `<tr><td colspan="4" class="empty"><h4>Erreur</h4><p>${err.message || 'Impossible de charger les statistiques'}</p></td></tr>`;
+    }
+}
+
+
+/* ================================================================
+   ANIMES - CRUD
+   ================================================================ */
+
+async function loadAnimes() {
+    try {
+        allAnimes = await apiCall('animes');
+        renderAnimesTable(allAnimes);
+        populateAnimeSelectors();
+    } catch (err) {
+        document.getElementById('animesTableBody').innerHTML = `<tr><td colspan="8" class="empty"><h4>Erreur de connexion</h4><p>Vérifiez l'URL de l'API dans Configuration</p></td></tr>`;
+    }
+}
+
+function renderAnimesTable(animes) {
+    if (animes.length === 0) {
+        document.getElementById('animesTableBody').innerHTML = `<tr><td colspan="8" class="empty"><h4>Aucun anime</h4><p>La base est vide ou aucun résultat trouvé.</p></td></tr>`;
+        return;
+    }
+    const html = animes.map((a, i) => {
+        const statusClass = a.status === 'En cours' ? 'green' : a.status === 'Terminé' ? 'blue' : 'yellow';
+        return `
+        <tr>
+            <td>${i + 1}</td>
+            <td>
+                <strong>${a.emoji || ''} ${a.title}</strong>
+                <br><span style="color:var(--text3);font-size:.75rem;font-style:italic">${a.title_jp || ''}</span>
+            </td>
+            <td>${a.year}</td>
+            <td><span class="badge badge-yellow">${a.rating}</span></td>
+            <td>${a.total_episodes}</td>
+            <td><span class="badge badge-purple">${a.db_episode_count || 0}</span></td>
+            <td><span class="badge badge-${statusClass}">${a.status}</span></td>
+            <td>
+                <div class="actions">
+                    <button class="action-btn" title="Voir episodes" onclick="showPage('episodes'); document.getElementById('epAnimeSelector').value=${a.id}; loadAnimeEpisodes(${a.id});">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    </button>
+                    <button class="action-btn" title="Modifier" onclick="editAnime(${a.id})">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button class="action-btn danger" title="Supprimer" onclick="confirmDeleteAnime(${a.id}, '${a.title.replace(/'/g, "\\'")}')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+    document.getElementById('animesTableBody').innerHTML = html;
+}
+
+function filterAnimes(query) {
+    if (!query) { renderAnimesTable(allAnimes); return; }
+    const q = query.toLowerCase();
+    const filtered = allAnimes.filter(a => a.title.toLowerCase().includes(q) || (a.title_jp || '').toLowerCase().includes(q));
+    renderAnimesTable(filtered);
+}
+
+function openAnimeModal(anime = null) {
+    document.getElementById('animeModalTitle').textContent = anime ? 'Modifier l\'Anime' : 'Nouvel Anime';
+    document.getElementById('animeEditId').value = anime ? anime.id : '';
+    document.getElementById('animeTitle').value = anime ? anime.title : '';
+    document.getElementById('animeTitleJp').value = anime ? anime.title_jp || '' : '';
+    document.getElementById('animeYear').value = anime ? anime.year : new Date().getFullYear();
+    document.getElementById('animeRating').value = anime ? anime.rating : 9.0;
+    document.getElementById('animeEpisodes').value = anime ? anime.total_episodes : 24;
+    document.getElementById('animeStatus').value = anime ? anime.status : 'En cours';
+    document.getElementById('animeColor').value = anime ? anime.color : '#e50914';
+    document.getElementById('animeEmoji').value = anime ? anime.emoji || '' : '';
+    document.getElementById('animeBadge').value = anime ? anime.badge || '' : '';
+    document.getElementById('animeRank').value = anime ? anime.rank || '' : '';
+    document.getElementById('animeImage').value = anime ? anime.image : 'images/default.png';
+    document.getElementById('animeGenre').value = anime ? anime.genre || '' : '';
+    document.getElementById('animeStudio').value = anime ? anime.studio || '' : '';
+    document.getElementById('animeDescription').value = anime ? anime.description || '' : '';
+    openModal('animeModal');
+}
+
+async function editAnime(id) {
+    try {
+        const anime = await apiCall('animes&id=' + id);
+        openAnimeModal(anime);
+    } catch (err) {
+        showToast('error', 'Erreur', 'Impossible de charger l\'anime');
+    }
+}
+
+async function saveAnime() {
+    const title = document.getElementById('animeTitle').value.trim();
+    const year = document.getElementById('animeYear').value;
+    const rating = document.getElementById('animeRating').value;
+    if (!title || !year || !rating) {
+        showToast('error', 'Erreur', 'Remplissez au moins le titre, l\'année et la note');
+        return;
+    }
+
+    const data = {
+        title,
+        title_jp: document.getElementById('animeTitleJp').value,
+        year: parseInt(year),
+        rating: parseFloat(rating),
+        total_episodes: parseInt(document.getElementById('animeEpisodes').value) || 0,
+        status: document.getElementById('animeStatus').value,
+        color: document.getElementById('animeColor').value,
+        emoji: document.getElementById('animeEmoji').value || null,
+        badge: document.getElementById('animeBadge').value || null,
+        rank: document.getElementById('animeRank').value ? parseInt(document.getElementById('animeRank').value) : null,
+        image: document.getElementById('animeImage').value,
+        genre: document.getElementById('animeGenre').value,
+        studio: document.getElementById('animeStudio').value,
+        description: document.getElementById('animeDescription').value
+    };
+
+    const editId = document.getElementById('animeEditId').value;
+
+    try {
+        let result;
+        if (editId) {
+            result = await apiCall('animes&id=' + editId, 'PUT', data, true);
+            showToast('success', 'Modifié', `${data.title} a été mis à jour`);
+        } else {
+            result = await apiCall('animes', 'POST', data, true);
+            showToast('success', 'Créé', `${data.title} a été ajouté à la base`);
+        }
+        closeModal('animeModal');
+        loadAnimes();
+        loadStats();
+    } catch (err) {
+        showToast('error', 'Erreur', err.error || 'Impossible de sauvegarder');
+    }
+}
+
+function confirmDeleteAnime(id, title) {
+    document.getElementById('confirmMessage').innerHTML = `Etes-vous sûr de vouloir supprimer <strong>${title}</strong> ?<br><br><span style="color:var(--accent)">Toutes les saisons et tous les épisodes associés seront également supprimés.</span>`;
+    document.getElementById('confirmBtn').onclick = async () => {
+        try {
+            await apiCall('animes&id=' + id, 'DELETE', null, true);
+            showToast('success', 'Supprimé', `${title} a été supprimé`);
+            closeModal('confirmModal');
+            loadAnimes();
+            loadStats();
+        } catch (err) {
+            showToast('error', 'Erreur', err.error || 'Impossible de supprimer');
+        }
+    };
+    openModal('confirmModal');
+}
+
+
+/* ================================================================
+   EPISODES
+   ================================================================ */
+
+function populateAnimeSelectors() {
+    const options = allAnimes.map(a => `<option value="${a.id}">${a.emoji || ''} ${a.title} (${a.db_episode_count || 0} ep)</option>`).join('');
+    document.getElementById('epAnimeSelector').innerHTML = '<option value="">-- Selectionnez un anime --</option>' + options;
+}
+
+async function loadAnimeEpisodes(animeId) {
+    if (!animeId) {
+        document.getElementById('episodesContent').style.display = 'none';
+        document.getElementById('episodesEmpty').style.display = '';
+        return;
+    }
+
+    currentAnimeId = parseInt(animeId);
+    currentSeasonId = null;
+
+    try {
+        const anime = await apiCall('animes&id=' + animeId);
+        document.getElementById('episodesContent').style.display = '';
+        document.getElementById('episodesEmpty').style.display = 'none';
+
+        // Header
+        document.getElementById('epAnimeHeader').innerHTML = `
+            <img class="anime-detail-img" src="${anime.image}" alt="${anime.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22170%22><rect fill=%22%23333%22 width=%22120%22 height=%22170%22 rx=%2210%22/><text x=%2260%22 y=%2290%22 fill=%22%23888%22 text-anchor=%22middle%22 font-size=%2214%22>No img</text></svg>'">
+            <div class="anime-detail-info">
+                <h2>${anime.emoji || ''} ${anime.title}</h2>
+                <div class="jp">${anime.title_jp || ''}</div>
+                <div class="anime-detail-meta">
+                    <span>📅 ${anime.year}</span>
+                    <span>⭐ ${anime.rating}/10</span>
+                    <span>🎬 ${anime.total_episodes} ep (total)</span>
+                    <span class="badge ${anime.status === 'En cours' ? 'badge-green' : 'badge-blue'}">${anime.status}</span>
+                </div>
+            </div>
+        `;
+
+        // Season tabs
+        let tabsHtml = `<div class="tab active" onclick="loadEpisodesForSeason(${animeId}, null, this)">Tous</div>`;
+        if (anime.seasons && anime.seasons.length > 0) {
+            anime.seasons.forEach(s => {
+                tabsHtml += `<div class="tab" onclick="loadEpisodesForSeason(${animeId}, ${s.id}, this)">S${s.season_number} - ${s.title}</div>`;
+            });
+        }
+        document.getElementById('seasonTabs').innerHTML = tabsHtml;
+
+        // Load all episodes
+        await loadEpisodesForSeason(animeId, null);
+
+        // Update season selects
+        let seasonOptions = '<option value="">-- Aucune --</option>';
+        if (anime.seasons) {
+            anime.seasons.forEach(s => {
+                seasonOptions += `<option value="${s.id}">S${s.season_number} - ${s.title}</option>`;
+            });
+        }
+        document.getElementById('epSeasonSelect').innerHTML = seasonOptions;
+
+        // Generate page season select
+        let genSeasonOptions = '<option value="">-- Sans saison --</option>';
+        if (anime.seasons) {
+            anime.seasons.forEach(s => {
+                genSeasonOptions += `<option value="${s.id}">S${s.season_number} - ${s.title} (${s.episode_count} ep)</option>`;
+            });
+        }
+        document.getElementById('genSeasonSelect').innerHTML = genSeasonOptions;
+
+    } catch (err) {
+        showToast('error', 'Erreur', 'Impossible de charger les episodes');
+    }
+}
+
+async function loadEpisodesForSeason(animeId, seasonId, tabEl) {
+    // Update tab active
+    if (tabEl) {
+        document.querySelectorAll('#seasonTabs .tab').forEach(t => t.classList.remove('active'));
+        tabEl.classList.add('active');
+    }
+
+    currentSeasonId = seasonId;
+    let url = 'episodes&anime_id=' + animeId;
+    if (seasonId) url += '&season_id=' + seasonId;
+
+    try {
+        const data = await apiCall(url);
+        const episodes = data.episodes || [];
+
+        document.getElementById('epTableTitle').textContent = `Episodes de ${data.anime_title}`;
+        document.getElementById('epCountLabel').textContent = `${episodes.length} episode(s) en base`;
+
+        if (episodes.length === 0) {
+            document.getElementById('episodesTableBody').innerHTML = `
+                <tr><td colspan="8" class="empty">
+                    <h4>Aucun épisode</h4>
+                    <p>Utilisez le bouton "Ajouter Episode" ou la page "Génération en masse" pour créer des épisodes.</p>
+                </td></tr>`;
+            return;
+        }
+
+        const html = episodes.map(ep => `
+            <tr>
+                <td><strong>${ep.number}</strong></td>
+                <td>${ep.title}</td>
+                <td>${ep.duration}</td>
+                <td>${ep.is_free ? '<span class="badge badge-green">Gratuit</span>' : '<span class="badge badge-red">Premium</span>'}</td>
+                <td style="font-size:.75rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${ep.video_url_1080 || ''}">${ep.video_url_1080 ? '✅ Oui' : '<span style="color:var(--text3)">-</span>'}</td>
+                <td style="font-size:.75rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${ep.video_url_720 || ''}">${ep.video_url_720 ? '✅ Oui' : '<span style="color:var(--text3)">-</span>'}</td>
+                <td style="font-size:.75rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${ep.video_url_480 || ''}">${ep.video_url_480 ? '✅ Oui' : '<span style="color:var(--text3)">-</span>'}</td>
+                <td>
+                    <div class="actions">
+                        <button class="action-btn" title="Modifier" onclick="editEpisode(${ep.number}, '${ep.title.replace(/'/g, "\\'")}', '${ep.description.replace(/'/g, "\\'")}', '${ep.duration}', ${ep.is_free})">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="action-btn danger" title="Supprimer" onclick="showToast('info','Info','Suppression via API en développement')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+        document.getElementById('episodesTableBody').innerHTML = html;
+
+    } catch (err) {
+        document.getElementById('episodesTableBody').innerHTML = `<tr><td colspan="8" class="empty"><h4>Erreur</h4><p>${err.message || 'Impossible de charger les episodes'}</p></td></tr>`;
+    }
+}
+
+function openEpisodeModal() {
+    if (!currentAnimeId) {
+        showToast('error', 'Erreur', 'Selectionnez d\'abord un anime');
+        return;
+    }
+    document.getElementById('episodeModalTitle').textContent = 'Nouvel Episode';
+    document.getElementById('epEditId').value = '';
+    document.getElementById('epAnimeId').value = currentAnimeId;
+    document.getElementById('epNumber').value = '';
+    document.getElementById('epTitle').value = '';
+    document.getElementById('epDescription').value = '';
+    document.getElementById('epDuration').value = '23:45';
+    document.getElementById('epIsFree').value = '0';
+    document.getElementById('epAirDate').value = '';
+    document.getElementById('epVideo1080').value = '';
+    document.getElementById('epVideo720').value = '';
+    document.getElementById('epVideo480').value = '';
+    openModal('episodeModal');
+}
+
+function editEpisode(number, title, description, duration, isFree) {
+    document.getElementById('episodeModalTitle').textContent = `Modifier Episode ${number}`;
+    document.getElementById('epEditId').value = '';
+    document.getElementById('epAnimeId').value = currentAnimeId;
+    document.getElementById('epNumber').value = number;
+    document.getElementById('epTitle').value = title;
+    document.getElementById('epDescription').value = description;
+    document.getElementById('epDuration').value = duration;
+    document.getElementById('epIsFree').value = isFree ? '1' : '0';
+    openModal('episodeModal');
+}
+
+async function saveEpisode() {
+    const animeId = parseInt(document.getElementById('epAnimeId').value);
+    const number = parseInt(document.getElementById('epNumber').value);
+    const title = document.getElementById('epTitle').value.trim();
+
+    if (!animeId || !number || !title) {
+        showToast('error', 'Erreur', 'Remplissez l\'anime, le numéro et le titre');
+        return;
+    }
+
+    const data = {
+        anime_id: animeId,
+        season_id: document.getElementById('epSeasonSelect').value || null,
+        episode_number: number,
+        title,
+        description: document.getElementById('epDescription').value,
+        duration: document.getElementById('epDuration').value,
+        is_free: parseInt(document.getElementById('epIsFree').value),
+        air_date: document.getElementById('epAirDate').value || null,
+        video_url_1080: document.getElementById('epVideo1080').value || null,
+        video_url_720: document.getElementById('epVideo720').value || null,
+        video_url_480: document.getElementById('epVideo480').value || null
+    };
+
+    try {
+        await apiCall('episodes', 'POST', data, true);
+        showToast('success', 'Ajouté', `Episode ${number} de "${allAnimes.find(a => a.id == animeId)?.title}" ajouté`);
+        closeModal('episodeModal');
+        loadAnimeEpisodes(animeId);
+        loadStats();
+    } catch (err) {
+        showToast('error', 'Erreur', err.error || 'Impossible d\'ajouter l\'episode');
+    }
+}
+
+
+/* ================================================================
+   GENERATION EN MASSE
+   ================================================================ */
+
+function populateGenerateSelects() {
+    const options = allAnimes.map(a => `<option value="${a.id}">${a.emoji || ''} ${a.title}</option>`).join('');
+    document.getElementById('genAnimeSelect').innerHTML = '<option value="">-- Selectionnez un anime --</option>' + options;
+}
+
+document.getElementById('genAnimeSelect').addEventListener('change', async function() {
+    const animeId = this.value;
+    if (!animeId) {
+        document.getElementById('genSeasonSelect').innerHTML = '<option value="">-- Sans saison --</option>';
+        return;
+    }
+    try {
+        const anime = await apiCall('animes&id=' + animeId);
+        let opts = '<option value="">-- Sans saison --</option>';
+        if (anime.seasons) {
+            anime.seasons.forEach(s => {
+                opts += `<option value="${s.id}">S${s.season_number} - ${s.title} (${s.episode_count} ep)</option>`;
+            });
+        }
+        document.getElementById('genSeasonSelect').innerHTML = opts;
+    } catch (e) {}
+});
+
+async function generateEpisodes() {
+    const animeId = document.getElementById('genAnimeSelect').value;
+    const start = parseInt(document.getElementById('genStart').value);
+    const end = parseInt(document.getElementById('genEnd').value);
+    const seasonId = document.getElementById('genSeasonSelect').value || null;
+    const prefix = document.getElementById('genPrefix').value || 'Episode';
+
+    if (!animeId) { showToast('error', 'Erreur', 'Selectionnez un anime'); return; }
+    if (!start || !end || start > end) { showToast('error', 'Erreur', 'Plage d\'épisodes invalide'); return; }
+
+    const btn = document.getElementById('genBtn');
+    btn.disabled = true;
+    btn.textContent = 'Génération en cours...';
+
+    try {
+        const data = await apiCall('generate-episodes', 'POST', {
+            anime_id: parseInt(animeId),
+            season_id: seasonId ? parseInt(seasonId) : null,
+            start,
+            end,
+            title_prefix: prefix
+        }, true);
+
+        const resultDiv = document.getElementById('genResult');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <div style="background:rgba(34,197,94,.1);border:1px solid var(--green);border-radius:8px;padding:16px">
+                <h4 style="color:var(--green);margin-bottom:8px">Génération réussie !</h4>
+                <p style="color:var(--text2);font-size:.85rem">
+                    <strong>${data.anime_title}</strong><br>
+                    Plage : ${data.range}<br>
+                    Créés : <strong>${data.created}</strong> épisodes<br>
+                    Total en BDD : <strong>${data.total_episodes_in_db}</strong> épisodes
+                </p>
+            </div>
+        `;
+
+        showToast('success', 'Terminé', `${data.created} épisodes générés pour ${data.anime_title}`);
+        loadAnimes();
+        loadStats();
+    } catch (err) {
+        showToast('error', 'Erreur', err.error || 'Génération échouée');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Générer les épisodes';
+    }
+}
+
+
+/* ================================================================
+   SETTINGS
+   ================================================================ */
+
+function saveSettings() {
+    API_URL = document.getElementById('settingApiUrl').value.trim();
+    API_KEY = document.getElementById('settingApiKey').value.trim();
+    localStorage.setItem('ks-admin-api', API_URL);
+    localStorage.setItem('ks-admin-key', API_KEY);
+    showToast('success', 'Sauvegardé', 'Configuration mise à jour');
+}
+
+async function testConnection() {
+    const resultDiv = document.getElementById('testResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Test en cours...</div>';
+
+    try {
+        const data = await apiCall('stats');
+        resultDiv.innerHTML = `
+            <div style="background:rgba(34,197,94,.1);border:1px solid var(--green);border-radius:8px;padding:16px">
+                <h4 style="color:var(--green)">Connexion réussie !</h4>
+                <p style="color:var(--text2);font-size:.85rem">
+                    ${data.total_animes} animes, ${data.total_episodes} épisodes, ${data.total_seasons} saisons en base.
+                </p>
+            </div>
+        `;
+    } catch (err) {
+        resultDiv.innerHTML = `
+            <div style="background:rgba(229,9,20,.1);border:1px solid var(--accent);border-radius:8px;padding:16px">
+                <h4 style="color:var(--accent)">Connexion échouée</h4>
+                <p style="color:var(--text2);font-size:.85rem">${err.message || 'Vérifiez l\'URL de l\'API et que le serveur PHP fonctionne.'}</p>
+            </div>
+        `;
+    }
+}
+</script>
+</body>
+</html>
